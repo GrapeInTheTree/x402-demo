@@ -19,6 +19,7 @@ make test                     # Run unit tests
 make run-facilitator          # go run ./cmd/facilitator
 make run-resource             # go run ./cmd/resource
 make run-client               # go run ./cmd/client
+make run-demo                 # Interactive 10-step payment flow demo
 go test ./internal/config -run TestLoadFacilitator -v   # Single test
 
 # Utilities
@@ -57,6 +58,7 @@ USDC flows directly from Client → PAY_TO. The Facilitator never touches USDC �
 - `cmd/facilitator/main.go` — Wires SDK facilitator + EVM exact scheme + Gin router
 - `cmd/resource/main.go` — Wires SDK Gin middleware + facilitator HTTP client + custom MoneyParser
 - `cmd/client/main.go` — Wires SDK client signer + HTTP RoundTripper for auto-payment
+- `cmd/demo/main.go` — Interactive 10-step demo: 402 → sign → verify → settle → balance diff
 - `cmd/balance/main.go` — Utility to check ETH/USDC balances on current network
 
 ### SDK Usage Pattern

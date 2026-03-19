@@ -79,7 +79,7 @@ Client Wallet                          PAY_TO Address
 ### 1. Clone and build
 
 ```bash
-git clone https://github.com/example/x402-demo.git
+git clone https://github.com/GrapeInTheTree/x402-demo.git
 cd x402-demo
 make build
 ```
@@ -118,10 +118,30 @@ make run-facilitator
 make run-resource
 ```
 
-### 4. Make a paid API call
+### 4. Run the interactive demo
 
 ```bash
-# Terminal 3 — Client
+# Terminal 3 — Interactive 10-step walkthrough
+make run-demo
+```
+
+The demo walks through the entire x402 payment flow step by step. Press Enter to advance each step:
+
+1. Wallet addresses and balances
+2. Facilitator `/supported` discovery
+3. API call without payment → 402
+4. `PAYMENT-REQUIRED` header decoded
+5. EIP-3009 signature creation (off-chain)
+6. Retry with `PAYMENT-SIGNATURE`
+7. Facilitator `/verify` (off-chain validation)
+8. 200 OK + API data returned
+9. Facilitator `/settle` → on-chain tx + `PAYMENT-RESPONSE`
+10. Before/after balance comparison
+
+### 5. Or use the simple client
+
+```bash
+# Terminal 3 — Simple client (auto payment, no step-by-step)
 make run-client
 ```
 
@@ -147,7 +167,7 @@ Response:
 }
 ```
 
-### 5. Check balances
+### 6. Check balances
 
 ```bash
 go run ./cmd/balance
@@ -171,7 +191,7 @@ PAY_TO (you):  0xDBCbC75772954F82d436700cDC4B7c8F434e07F5
   USDC: 0.100000
 ```
 
-### 6. Verify endpoints
+### 7. Verify endpoints
 
 ```bash
 curl http://localhost:4022/health      # Facilitator health
@@ -277,6 +297,7 @@ x402-demo/
 │   ├── facilitator/main.go    Facilitator HTTP server entrypoint
 │   ├── resource/main.go       Resource HTTP server entrypoint
 │   ├── client/main.go         Client CLI entrypoint
+│   ├── demo/main.go           Interactive 10-step payment flow walkthrough
 │   └── balance/main.go        Wallet balance checker utility
 ├── internal/
 │   ├── config/                Environment variable loading + validation
