@@ -44,7 +44,17 @@ func (s *Server) HandleVerify(c *gin.Context) {
 		return
 	}
 
-	s.logger.Info("verify request", "x402Version", req.X402Version)
+	// Log decoded payload for debugging
+	var payloadMap map[string]interface{}
+	json.Unmarshal(req.PaymentPayload, &payloadMap)
+	var reqMap map[string]interface{}
+	json.Unmarshal(req.PaymentRequirements, &reqMap)
+
+	s.logger.Info("verify request",
+		"x402Version", req.X402Version,
+		"paymentPayload", payloadMap,
+		"paymentRequirements", reqMap,
+	)
 
 	resp, err := s.facilitator.Verify(c.Request.Context(), req.PaymentPayload, req.PaymentRequirements)
 	if err != nil {
@@ -64,6 +74,10 @@ func (s *Server) HandleVerify(c *gin.Context) {
 		return
 	}
 
+	s.logger.Info("verify success",
+		"isValid", resp.IsValid,
+		"payer", resp.Payer,
+	)
 	c.JSON(http.StatusOK, resp)
 }
 
@@ -81,7 +95,13 @@ func (s *Server) HandleSettle(c *gin.Context) {
 		return
 	}
 
-	s.logger.Info("settle request", "x402Version", req.X402Version)
+	var settlePayloadMap map[string]interface{}
+	json.Unmarshal(req.PaymentPayload, &settlePayloadMap)
+
+	s.logger.Info("settle request",
+		"x402Version", req.X402Version,
+		"paymentPayload", settlePayloadMap,
+	)
 
 	resp, err := s.facilitator.Settle(c.Request.Context(), req.PaymentPayload, req.PaymentRequirements)
 	if err != nil {
@@ -102,6 +122,12 @@ func (s *Server) HandleSettle(c *gin.Context) {
 		return
 	}
 
+	s.logger.Info("settle success",
+		"success", resp.Success,
+		"transaction", resp.Transaction,
+		"network", resp.Network,
+		"payer", resp.Payer,
+	)
 	c.JSON(http.StatusOK, resp)
 }
 
