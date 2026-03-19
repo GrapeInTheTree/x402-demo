@@ -1,0 +1,25 @@
+services:
+  facilitator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: facilitator
+    ports:
+      - "4022:4022"
+    env_file: .env
+    environment:
+      FACILITATOR_PORT: "4022"
+
+  resource:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: resource
+    ports:
+      - "4021:4021"
+    env_file: .env
+    environment:
+      RESOURCE_PORT: "4021"
+      FACILITATOR_URL: "http://facilitator:4022"
+    depends_on:
+      - facilitator
