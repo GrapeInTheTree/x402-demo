@@ -15,12 +15,14 @@ Chain-agnostic: configure via environment variables. Verified working on Base Se
 
 ```bash
 make build                    # Build all three binaries
-make test                     # Run unit tests
+make test                     # Run all 25 unit tests
 make run-facilitator          # go run ./cmd/facilitator
 make run-resource             # go run ./cmd/resource
 make run-client               # go run ./cmd/client
 make run-demo                 # Interactive 10-step payment flow demo
-go test ./internal/config -run TestLoadFacilitator -v   # Single test
+go test ./internal/config -run TestLoadFacilitator -v        # Single test
+go test ./internal/facilserver -run TestHandleVerify -v     # Facilserver tests
+go test ./internal/signer -run TestFacilitatorSigner -v     # Signer tests
 
 # Utilities
 go run ./cmd/balance          # Check wallet balances on current network
@@ -50,8 +52,10 @@ USDC flows directly from Client → PAY_TO. The Facilitator never touches USDC �
 
 ### Key Code Locations
 
-- `internal/signer/facilitator.go` — Custom `FacilitatorEvmSigner` implementation (~250 lines). Implements the SDK's `evm.FacilitatorEvmSigner` interface. The SDK does NOT provide a facilitator signer constructor.
+- `internal/signer/facilitator.go` — Custom `FacilitatorEvmSigner` implementation (~330 lines). Implements the SDK's `evm.FacilitatorEvmSigner` interface with `Close()` for key zeroing. The SDK does NOT provide a facilitator signer constructor.
+- `internal/facilserver/iface.go` — `Facilitator` interface for testability (decouples handlers from SDK)
 - `internal/facilserver/server.go` — Facilitator HTTP handlers (`/verify`, `/settle`, `/supported`)
+- `internal/facilserver/errors.go` — Sentinel errors for request validation
 - `internal/server/routes.go` — Payment-protected route definitions with pricing (currently $0.1 per endpoint)
 - `internal/server/handlers.go` — Demo API handlers (weather, joke, premium-data)
 - `internal/config/config.go` — Environment variable loading for all three components

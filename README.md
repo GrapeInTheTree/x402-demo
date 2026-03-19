@@ -411,7 +411,7 @@ The payment scheme is `exact` using **EIP-3009** `transferWithAuthorization`:
 
 ```bash
 make build           # Compile all binaries
-make test            # Run unit tests
+make test            # Run all 25 unit tests
 make test-integration # Run integration tests (requires testnet)
 make lint            # Run golangci-lint
 make clean           # Remove compiled binaries
@@ -421,7 +421,19 @@ Run a single test:
 
 ```bash
 go test ./internal/config -run TestLoadFacilitator -v
+go test ./internal/facilserver -run TestHandleVerify -v
+go test ./internal/signer -run TestFacilitatorSigner_Close -v
 ```
+
+### Test Coverage
+
+| Package | Tests | What's tested |
+|---------|:-----:|---------------|
+| `internal/config` | 7 | Env loading, defaults, validation, log levels |
+| `internal/facilserver` | 9 | Verify/settle/supported handlers with mock Facilitator |
+| `internal/server` | 4 | Weather/joke/premium-data response structure, health |
+| `internal/signer` | 5 | Key parsing, address derivation, 0x prefix, Close() zeroing |
+| **Total** | **25** | |
 
 ## Verified Transactions
 
