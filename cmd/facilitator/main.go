@@ -37,6 +37,8 @@ func main() {
 		os.Exit(1)
 	}
 
+	defer evmSigner.Close()
+
 	logger.Info("facilitator initialized",
 		"address", evmSigner.Address(),
 		"network", cfg.Network,

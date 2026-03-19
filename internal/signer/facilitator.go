@@ -314,3 +314,16 @@ func (s *FacilitatorSigner) GetCode(ctx context.Context, address string) ([]byte
 func (s *FacilitatorSigner) Address() string {
 	return s.address.Hex()
 }
+
+// Close zeroes the private key from memory and closes the RPC client.
+// Call this when the signer is no longer needed.
+func (s *FacilitatorSigner) Close() {
+	if s.privateKey != nil {
+		for i := range s.privateKey {
+			s.privateKey[i] = 0
+		}
+	}
+	if s.client != nil {
+		s.client.Close()
+	}
+}

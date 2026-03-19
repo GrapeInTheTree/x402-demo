@@ -10,14 +10,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-// Server wraps an x402 facilitator with HTTP handlers.
+// Server wraps a Facilitator interface with HTTP handlers.
 type Server struct {
-	facilitator *x402.X402Facilitator
+	facilitator Facilitator
 	logger      *slog.Logger
 }
 
 // New creates a new facilitator HTTP server.
-func New(facilitator *x402.X402Facilitator, logger *slog.Logger) *Server {
+// Accepts the Facilitator interface — works with *x402.X402Facilitator or any mock.
+func New(facilitator Facilitator, logger *slog.Logger) *Server {
 	return &Server{
 		facilitator: facilitator,
 		logger:      logger,
@@ -32,22 +33,15 @@ type verifySettleRequest struct {
 
 // HandleVerify handles POST /verify.
 func (s *Server) HandleVerify(c *gin.Context) {
-	body, err := io.ReadAll(c.Request.Body)
+	req, err := s.parseRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
-		return
-	}
-
-	var req verifySettleRequest
-	if err := json.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	// Log decoded payload for debugging
-	var payloadMap map[string]interface{}
+	var payloadMap, reqMap map[string]any
 	json.Unmarshal(req.PaymentPayload, &payloadMap)
-	var reqMap map[string]interface{}
 	json.Unmarshal(req.PaymentRequirements, &reqMap)
 
 	s.logger.Info("verify request",
@@ -59,9 +53,7 @@ func (s *Server) HandleVerify(c *gin.Context) {
 	resp, err := s.facilitator.Verify(c.Request.Context(), req.PaymentPayload, req.PaymentRequirements)
 	if err != nil {
 		s.logger.Error("verify failed", "error", err)
-		// Return 400 with error details (matching SDK convention)
-		verifyErr, ok := err.(*x402.VerifyError)
-		if ok {
+		if verifyErr, ok := err.(*x402.VerifyError); ok {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"isValid":        false,
 				"invalidReason":  verifyErr.InvalidReason,
@@ -74,40 +66,30 @@ func (s *Server) HandleVerify(c *gin.Context) {
 		return
 	}
 
-	s.logger.Info("verify success",
-		"isValid", resp.IsValid,
-		"payer", resp.Payer,
-	)
+	s.logger.Info("verify success", "isValid", resp.IsValid, "payer", resp.Payer)
 	c.JSON(http.StatusOK, resp)
 }
 
 // HandleSettle handles POST /settle.
 func (s *Server) HandleSettle(c *gin.Context) {
-	body, err := io.ReadAll(c.Request.Body)
+	req, err := s.parseRequest(c)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "failed to read body"})
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
-	var req verifySettleRequest
-	if err := json.Unmarshal(body, &req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid JSON"})
-		return
-	}
-
-	var settlePayloadMap map[string]interface{}
-	json.Unmarshal(req.PaymentPayload, &settlePayloadMap)
+	var payloadMap map[string]any
+	json.Unmarshal(req.PaymentPayload, &payloadMap)
 
 	s.logger.Info("settle request",
 		"x402Version", req.X402Version,
-		"paymentPayload", settlePayloadMap,
+		"paymentPayload", payloadMap,
 	)
 
 	resp, err := s.facilitator.Settle(c.Request.Context(), req.PaymentPayload, req.PaymentRequirements)
 	if err != nil {
 		s.logger.Error("settle failed", "error", err)
-		settleErr, ok := err.(*x402.SettleError)
-		if ok {
+		if settleErr, ok := err.(*x402.SettleError); ok {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"success":      false,
 				"errorReason":  settleErr.ErrorReason,
@@ -134,5 +116,23 @@ func (s *Server) HandleSettle(c *gin.Context) {
 // HandleSupported handles GET /supported.
 func (s *Server) HandleSupported(c *gin.Context) {
 	resp := s.facilitator.GetSupported()
+	if len(resp.Kinds) == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "no supported payment kinds"})
+		return
+	}
 	c.JSON(http.StatusOK, resp)
+}
+
+// parseRequest reads and decodes the JSON request body.
+func (s *Server) parseRequest(c *gin.Context) (*verifySettleRequest, error) {
+	body, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		return nil, ErrReadBody
+	}
+
+	var req verifySettleRequest
+	if err := json.Unmarshal(body, &req); err != nil {
+		return nil, ErrInvalidJSON
+	}
+	return &req, nil
 }
