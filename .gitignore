@@ -2,6 +2,7 @@
 /facilitator
 /resource
 /client
+/demo
 *.exe
 
 # Environment

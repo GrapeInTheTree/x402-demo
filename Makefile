@@ -23,5 +23,8 @@ run-resource:
 run-client:
 	go run ./cmd/client
 
+run-demo:
+	go run ./cmd/demo
+
 clean:
 	rm -f facilitator resource client
