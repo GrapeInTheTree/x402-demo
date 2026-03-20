@@ -16,7 +16,8 @@ Most x402 examples are minimal snippets. This project is a **complete, working r
 
 - **Full Lifecycle** — Facilitator, Resource Server, and Client CLI working end-to-end
 - **Dual Transfer Methods** — EIP-3009 and Permit2, switchable via one environment variable
-- **Interactive TUI Explorer** — Bubbletea-based tool with live payment execution, animated spinners, and keyboard help overlay
+- **Interactive Coding Quiz** — 17 problems (Go + Solidity) with `$EDITOR` integration and auto-grading via `go test` / `forge test`
+- **Live Payment Practice** — 10-step flow with real HTTP/SDK calls, animated spinners
 - **Chain-Agnostic** — Configure any EVM chain via environment variables
 - **45 Unit Tests** — Config, handlers, signer, protocol logic all covered
 
@@ -27,7 +28,7 @@ Client CLI ──HTTP──> Resource Server ──HTTP──> Facilitator Serve
 cmd/client           cmd/resource              cmd/facilitator
 
 Explorer TUI (cmd/explorer) — Interactive learning & live execution tool
-  ├── Learn     — 6 protocol topics with markdown rendering
+  ├── Learn     — 17 coding quizzes (Go + Solidity), editor integration, auto-grading
   ├── Explore   — Data structure inspector (headers, EIP-712, on-chain state)
   ├── Practice  — Live 10-step payment flow with real HTTP/SDK calls
   └── Dashboard — Wallet balances with animated loading (live from chain)
@@ -123,15 +124,19 @@ PAY_TO_ADDRESS=0x...            # Receives USDC (no private key needed)
 ASSET_TRANSFER_METHOD=eip3009   # or permit2
 ```
 
-### 3. Explore the protocol (no servers needed)
+### 3. Learn by coding (no servers needed)
 
 ```bash
 make run-explorer        # Home menu — choose a mode
-make run-learn           # Learn mode — 6 protocol topics
+make run-learn           # Learn mode — coding quiz (Go + Solidity)
 make run-dashboard       # Dashboard — live wallet balances
 ```
 
+Learn mode opens your `$EDITOR` (nvim/vim/nano) with code templates. Write the solution, save, and the TUI auto-grades it via `go test` or `forge test`.
+
 Press `?` at any time for keyboard shortcuts.
+
+**Prerequisites for Solidity quizzes:** [Foundry](https://getfoundry.sh/) (`forge`) must be installed.
 
 ### 4. Run the full payment flow (live execution)
 
@@ -344,6 +349,7 @@ x402-playground/
 ├── internal/
 │   ├── config/                Environment variable loading + validation
 │   ├── demo/                  Protocol logic + LiveExecutor for real payment execution
+│   ├── quiz/                  Quiz engine: questions (Go + Solidity), runner (go test + forge test)
 │   ├── facilserver/           Facilitator HTTP handlers (/verify, /settle, /supported)
 │   ├── server/                Resource Server routes + API handlers
 │   ├── signer/                FacilitatorEvmSigner (EIP-1559, EIP-712)
@@ -351,7 +357,7 @@ x402-playground/
 │       ├── app.go             Root model + page routing + help overlay + min size check
 │       ├── components/        Reusable UI (menu, panel, jsonview, fieldexplorer, progress...)
 │       ├── home/              Main menu (4 modes)
-│       ├── learn/             6 protocol topics with markdown rendering
+│       ├── learn/             Interactive coding quiz with editor integration
 │       ├── explore/           Data structure inspector (headers, EIP-712, on-chain)
 │       ├── practice/          Live payment flow execution (EIP-3009, Permit2, side-by-side)
 │       └── dashboard/         Live wallet balances
@@ -375,7 +381,9 @@ x402-playground/
 | x402 SDK | [coinbase/x402/go](https://github.com/coinbase/x402) v2.6.0 |
 | EVM Client | [go-ethereum](https://github.com/ethereum/go-ethereum) v1.17 |
 | HTTP Framework | [Gin](https://github.com/gin-gonic/gin) v1.12 |
-| TUI Framework | [bubbletea](https://github.com/charmbracelet/bubbletea) + [lipgloss](https://github.com/charmbracelet/lipgloss) + [glamour](https://github.com/charmbracelet/glamour) |
+| TUI Framework | [bubbletea](https://github.com/charmbracelet/bubbletea) + [lipgloss](https://github.com/charmbracelet/lipgloss) |
+| Quiz Runner | `go test` (Go) + `forge test` ([Foundry](https://getfoundry.sh/)) (Solidity) |
+| Editor Integration | `tea.ExecProcess` → `$EDITOR` (nvim/vim/nano) |
 | Payment Scheme | EIP-3009 / Permit2 (exact scheme) |
 | Signatures | EIP-712 Typed Structured Data |
 | Transactions | EIP-1559 (dynamic fee) |

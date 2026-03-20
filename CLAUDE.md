@@ -23,11 +23,11 @@ make run-client               # go run ./cmd/client
 make run-explorer             # Interactive TUI explorer (Home menu)
 make run-demo                 # Practice mode: EIP-3009 flow
 make run-demo-permit2         # Practice mode: Permit2 flow
-make run-learn                # Learn mode: protocol concepts
+make run-learn                # Learn mode: interactive coding quiz (Go + Solidity)
 make run-dashboard            # Dashboard: wallet balances
 
 # Explorer with flags
-go run ./cmd/explorer --mode=learn           # Jump directly to Learn mode
+go run ./cmd/explorer --mode=learn           # Jump directly to coding quiz
 go run ./cmd/explorer --mode=practice --flow=eip3009  # EIP-3009 practice
 go run ./cmd/explorer --mode=dashboard       # Dashboard only
 
@@ -82,6 +82,7 @@ USDC flows directly from Client → PAY_TO. The Facilitator never touches USDC �
 - `cmd/explorer/main.go` — Bubbletea TUI entry point with `--mode` and `--flow` flags
 - `cmd/balance/main.go` — Utility to check ETH/USDC balances on current network
 - `internal/demo/` — Extracted protocol logic: types, balance queries, header decoding, flow execution
+- `internal/quiz/` — Quiz engine: questions (Go + Solidity), runner (`go test` + `forge test`), types
 - `internal/tui/` — TUI framework: app routing, components, pages (home, learn, explore, practice, dashboard)
 
 ### Explorer TUI Architecture
@@ -97,7 +98,12 @@ The TUI uses [bubbletea](https://github.com/charmbracelet/bubbletea) (Elm archit
 
 Key TUI packages:
 - `internal/tui/components/` — Reusable: Menu, Panel, TriPanel, FieldExplorer, JSONView, Progress, StatusBar, Markdown
-- `internal/tui/learn/` — 6 markdown topics rendered via glamour, with viewport scrolling
+- `internal/tui/learn/` — Interactive coding quiz. 17 problems (13 Go + 4 Solidity) across 4 difficulty levels and 7 categories (Basics, ERC-20, EIP-712, EIP-3009, EIP-2612, x402, Permit2). Uses `tea.ExecProcess` to launch `$EDITOR` (nvim→vim→nano fallback), then auto-grades via `go test` or `forge test`. Score tracking across questions.
+- `internal/quiz/` — Quiz engine:
+  - `types.go` — `Question` (with Lang, Category, Difficulty), `Result`, `Score`
+  - `runner.go` — `Runner` supports Go (`go test` in temp module) and Solidity (`forge test` in temp Foundry project with forge-std)
+  - `questions.go` — 13 Go questions: hex validation, USDC conversion, base64/JSON, ERC-20 selectors, EIP-712 domains/type hashes, EIP-3009 fields, EIP-2612 permits, x402 headers/verify/settlement, Permit2 flow, payment state machine
+  - `questions_solidity.go` — 4 Solidity questions: ERC-20 basic, ERC-20 approve/transferFrom, EIP-3009 transferWithAuthorization, Permit2 approval pattern
 - `internal/tui/explore/` — PAYMENT-REQUIRED field explorer, EIP-712 TypedData inspector (Tab to switch EIP-3009/Permit2), EIP-3009 vs Permit2 comparison, on-chain state viewer
 - `internal/tui/practice/` — **Live execution** of 10-step flow via `LiveExecutor`. Each step fires async `tea.Cmd` with real HTTP/SDK calls. 3-column panel (Client/Resource/Facilitator) with spinner animation during execution. `stepManager` tracks state (pending/running/done/error). Press `n` to execute, `p` to review previous.
 - `internal/tui/dashboard/` — Live wallet balances from chain via RPC with animated spinner, `r` to refresh
@@ -167,6 +173,7 @@ Facilitator endpoints receive payloads as `json.RawMessage` and pass `[]byte` di
 | `LOG_LEVEL` | all | `info` |
 
 Explorer's Learn and Explore modes work without private keys or server URLs (best-effort config).
+Learn mode requires `$EDITOR` (nvim/vim/nano) and `go` for Go quizzes; additionally `forge` (Foundry) for Solidity quizzes.
 Practice mode requires `CLIENT_PRIVATE_KEY`, `FACILITATOR_URL`, `RESOURCE_URL` + running servers for live execution.
 Dashboard requires `RPC_URL` and `PAY_TO_ADDRESS` for balance queries (no servers needed).
 
