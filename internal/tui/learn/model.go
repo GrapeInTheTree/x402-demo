@@ -234,24 +234,101 @@ func (m *Model) View() string {
 	}
 }
 
+// levelGroup defines a section header for quiz questions.
+type levelGroup struct {
+	title string
+	start int // first question index (inclusive)
+	end   int // last question index (exclusive)
+}
+
+// buildLevelGroups computes group boundaries from the question list.
+// Groups are determined by the AllQuestions() ordering:
+// level1Basics, level2Standards, level3Protocol, level4Advanced, SolidityQuestions.
+func buildLevelGroups(questions []quiz.Question) []levelGroup {
+	var groups []levelGroup
+	type groupDef struct {
+		label     string
+		matchFunc func(q quiz.Question) bool
+	}
+	defs := []groupDef{
+		{"LEVEL 1 \u2014 Basics", func(q quiz.Question) bool {
+			return q.Difficulty == "easy" && q.Language != quiz.LangSolidity
+		}},
+		{"LEVEL 2 \u2014 Standards", func(q quiz.Question) bool {
+			return q.Difficulty == "medium" && q.Language != quiz.LangSolidity && q.Category != "x402"
+		}},
+		{"LEVEL 3 \u2014 Protocol", func(q quiz.Question) bool {
+			return q.Category == "x402" && q.Language != quiz.LangSolidity
+		}},
+		{"LEVEL 4 \u2014 Advanced", func(q quiz.Question) bool {
+			return q.Difficulty == "hard" && q.Language != quiz.LangSolidity
+		}},
+		{"SOLIDITY", func(q quiz.Question) bool {
+			return q.Language == quiz.LangSolidity
+		}},
+	}
+
+	assigned := make([]bool, len(questions))
+	for _, def := range defs {
+		start := -1
+		end := -1
+		for i, q := range questions {
+			if !assigned[i] && def.matchFunc(q) {
+				if start == -1 {
+					start = i
+				}
+				end = i + 1
+				assigned[i] = true
+			}
+		}
+		if start != -1 {
+			groups = append(groups, levelGroup{title: def.label, start: start, end: end})
+		}
+	}
+	return groups
+}
+
 func (m *Model) viewList() string {
 	title := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorPrimary).
-		Render("Learn — x402 Protocol Quiz")
+		Render("Learn \u2014 x402 Protocol Quiz")
 	scoreText := lipgloss.NewStyle().Foreground(tui.ColorMuted).
 		Render(fmt.Sprintf("Score: %d/%d", m.score.Correct, m.score.Questions))
 	divider := lipgloss.NewStyle().Foreground(tui.ColorBorder).
-		Render(strings.Repeat("─", min(m.width-8, 60)))
+		Render(strings.Repeat("\u2500", min(m.width-8, 60)))
+
+	groups := buildLevelGroups(m.questions)
+
+	// Build a set of indices that start a new group, mapped to header text.
+	groupHeaders := make(map[int]string)
+	for _, g := range groups {
+		groupHeaders[g.start] = g.title
+	}
+
+	headerStyle := lipgloss.NewStyle().
+		Bold(true).
+		Foreground(tui.ColorSecondary).
+		MarginTop(1)
+
+	rowWidth := max(min(m.width-8, 64), 20)
 
 	var items strings.Builder
 	for i, q := range m.questions {
-		icon := "○"
+		// Insert group header if this index starts a new group.
+		if header, ok := groupHeaders[i]; ok {
+			if i > 0 {
+				items.WriteString("\n")
+			}
+			items.WriteString(headerStyle.Render("  "+header) + "\n")
+		}
+
+		icon := "\u25cb"
 		iconStyle := lipgloss.NewStyle().Foreground(tui.ColorMuted)
 		if r, ok := m.results[i]; ok {
 			if r.Passed == r.Total && r.Total > 0 {
-				icon = "✓"
+				icon = "\u2713"
 				iconStyle = lipgloss.NewStyle().Foreground(tui.ColorSuccess)
 			} else {
-				icon = "✗"
+				icon = "\u2717"
 				iconStyle = lipgloss.NewStyle().Foreground(tui.ColorError)
 			}
 		}
@@ -275,17 +352,24 @@ func (m *Model) viewList() string {
 		badge := langStyle.Render(langIcon) + " " + catStyle.Render(q.Category) + " " + diffStyle.Render("["+q.Difficulty+"]")
 
 		if i == m.cursor {
-			cursor := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Render(">")
-			name := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Render(q.Title)
-			fmt.Fprintf(&items, " %s %s %s  %s\n", cursor, iconStyle.Render(icon), name, badge)
+			// Full-row highlight bar for selected item
+			innerText := fmt.Sprintf(" \u25b8 %s %-28s %s", iconStyle.Render(icon), q.Title, badge)
+			row := lipgloss.NewStyle().
+				Background(tui.ColorHighlight).
+				Foreground(lipgloss.Color("#A78BFA")).
+				Bold(true).
+				Width(rowWidth).
+				Padding(0, 1).
+				Render(innerText)
+			items.WriteString(row + "\n")
 		} else {
 			name := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB")).Render(q.Title)
-			fmt.Fprintf(&items, "   %s %s  %s\n", iconStyle.Render(icon), name, badge)
+			fmt.Fprintf(&items, "    %s %s  %s\n", iconStyle.Render(icon), name, badge)
 		}
 	}
 
 	body := lipgloss.JoinVertical(lipgloss.Left, title, scoreText, divider, "", items.String())
-	return tui.LayoutPage(body, "↑/↓ navigate  enter select  ? help  esc back", m.width, m.height)
+	return tui.LayoutPage(body, "\u2191/\u2193 navigate  enter select  ? help  esc back", m.width, m.height)
 }
 
 func (m *Model) viewQuestion() string {

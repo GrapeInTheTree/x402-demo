@@ -13,6 +13,7 @@ var (
 	ColorBorder    = lipgloss.Color("#374151") // dark gray
 	ColorBg        = lipgloss.Color("#111827") // near-black
 	ColorSubtle    = lipgloss.Color("#1F2937") // slightly lighter than bg
+	ColorHighlight = lipgloss.Color("#2D1B69") // subtle violet bg for selection
 
 	// Text styles
 	TitleStyle = lipgloss.NewStyle().
@@ -71,13 +72,13 @@ func LayoutPage(body, hints string, width, height int) string {
 		return body
 	}
 
-	// Status bar: full-width background
+	// Status bar: full-width background with colored segments
 	statusBar := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#9CA3AF")).
 		Background(ColorSubtle).
 		Width(width).
 		Padding(0, 2).
-		Render(hints)
+		Render("  " + hints)
 
 	statusH := lipgloss.Height(statusBar)
 

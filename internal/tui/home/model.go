@@ -1,6 +1,7 @@
 package home
 
 import (
+	"fmt"
 	"strings"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -18,10 +19,10 @@ type Model struct {
 }
 
 var menuItems = []components.MenuItem{
-	{Title: "Learn", Description: "Learn x402 protocol with coding quizzes", Icon: "📖"},
-	{Title: "Explore", Description: "Inspect protocol data structures live", Icon: "🔍"},
-	{Title: "Practice", Description: "Execute payment flows (EIP-3009 / Permit2)", Icon: "⚡"},
-	{Title: "Dashboard", Description: "Wallet balances & transaction status", Icon: "📊"},
+	{Title: "Learn", Description: "Learn x402 protocol with coding quizzes", Icon: "\u25c8"},
+	{Title: "Explore", Description: "Inspect protocol data structures live", Icon: "\u25ce"},
+	{Title: "Practice", Description: "Execute payment flows (EIP-3009 / Permit2)", Icon: "\u25b6"},
+	{Title: "Dashboard", Description: "Wallet balances & transaction status", Icon: "\u25eb"},
 }
 
 var pageMap = []tui.Page{
@@ -75,30 +76,29 @@ func (m *Model) SetSize(width, height int) {
 
 // View renders the home page with title and menu.
 func (m *Model) View() string {
-	// Header section
+	contentWidth := min(m.width-8, 60)
+
+	// ASCII art banner
+	bannerLine := strings.Repeat("\u2550", contentWidth-2)
+	banner := fmt.Sprintf("  %s\n   x402 Protocol Explorer\n  %s", bannerLine, bannerLine)
+
 	title := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(tui.ColorPrimary).
-		Render("x402 Protocol Explorer")
+		Render(banner)
 
 	subtitle := lipgloss.NewStyle().
 		Foreground(tui.ColorMuted).
-		Render("Interactive learning tool for the x402 payment protocol")
-
-	divider := lipgloss.NewStyle().
-		Foreground(tui.ColorBorder).
-		Width(min(m.width-8, 60)).
-		Render(strings.Repeat("─", min(m.width-8, 60)))
+		Render("  Interactive learning tool for the x402 payment protocol")
 
 	body := lipgloss.JoinVertical(lipgloss.Left,
 		"",
 		title,
 		subtitle,
 		"",
-		divider,
 		"",
 		m.menu.View(),
 	)
 
-	return tui.LayoutPage(body, "↑/↓ navigate  enter select  ? help  q quit", m.width, m.height)
+	return tui.LayoutPage(body, "\u2191/\u2193 navigate  enter select  ? help  q quit", m.width, m.height)
 }
