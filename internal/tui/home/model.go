@@ -1,9 +1,6 @@
 package home
 
 import (
-	"fmt"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -19,10 +16,10 @@ type Model struct {
 }
 
 var menuItems = []components.MenuItem{
-	{Title: "Learn", Description: "Learn x402 protocol with coding quizzes", Icon: "\u25c8"},
-	{Title: "Explore", Description: "Inspect protocol data structures live", Icon: "\u25ce"},
-	{Title: "Practice", Description: "Execute payment flows (EIP-3009 / Permit2)", Icon: "\u25b6"},
-	{Title: "Dashboard", Description: "Wallet balances & transaction status", Icon: "\u25eb"},
+	{Title: "Learn", Description: "Learn x402 protocol with coding quizzes", Icon: "◈"},
+	{Title: "Explore", Description: "Inspect protocol data structures live", Icon: "◎"},
+	{Title: "Practice", Description: "Execute payment flows (EIP-3009 / Permit2)", Icon: "▶"},
+	{Title: "Dashboard", Description: "Wallet balances & transaction status", Icon: "◫"},
 }
 
 var pageMap = []tui.Page{
@@ -34,11 +31,13 @@ var pageMap = []tui.Page{
 
 // New creates a new home page model with the given dimensions.
 func New(width, height int) *Model {
-	return &Model{
+	m := &Model{
 		menu:   components.NewMenu(menuItems),
 		width:  width,
 		height: height,
 	}
+	m.menu.Width = min(width, 60)
+	return m
 }
 
 // Init implements the SubModel interface.
@@ -71,32 +70,31 @@ func (m *Model) Update(msg tea.Msg) (tui.SubModel, tea.Cmd) {
 func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
-	m.menu.Width = width
+	m.menu.Width = min(width, 60)
 }
 
-// View renders the home page with title and menu.
+// View renders the home page — centered landing screen.
 func (m *Model) View() string {
-	bannerW := max(m.width-6, 30)
-
-	// ASCII art banner — scales with terminal width
-	bannerLine := strings.Repeat("═", bannerW)
-	banner := fmt.Sprintf(" %s\n  x402 Protocol Explorer\n %s", bannerLine, bannerLine)
-
 	title := lipgloss.NewStyle().
 		Bold(true).
 		Foreground(tui.ColorPrimary).
-		Render(banner)
+		Render("x402 Protocol Explorer")
 
 	subtitle := lipgloss.NewStyle().
 		Foreground(tui.ColorMuted).
-		Render("  Interactive learning tool for the x402 payment protocol")
+		Render("Interactive learning tool for the x402 payment protocol")
 
-	return lipgloss.JoinVertical(lipgloss.Left,
-		"",
-		title,
-		subtitle,
-		"",
+	// Center title block
+	titleBlock := lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
+
+	body := lipgloss.JoinVertical(lipgloss.Center,
+		titleBlock,
 		"",
 		m.menu.View(),
 	)
+
+	// Center everything in the available space
+	return lipgloss.Place(m.width, m.height,
+		lipgloss.Center, lipgloss.Center,
+		body)
 }

@@ -24,7 +24,6 @@ const (
 	minTermHeight = 20
 )
 
-// pageLabel returns the display name for each page.
 func pageLabel(p Page) string {
 	switch p {
 	case PageHome:
@@ -88,7 +87,6 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.windowWidth = msg.Width
 		m.windowHeight = msg.Height
-		// Pages get the inner content size (frame takes some space)
 		iw, ih := m.innerSize()
 		for page, sub := range m.pages {
 			sub.SetSize(iw, ih)
@@ -156,16 +154,12 @@ func (m RootModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// innerSize returns the content area size inside the app frame.
+// innerSize returns the content area inside the chrome (header + status).
 func (m RootModel) innerSize() (int, int) {
-	// Border=2, padding=2 each side horizontally = -4 total
-	// Header=1, status=1, border=2, padding=0 vertically = -4 total
-	iw := max(m.windowWidth-4, 20)
-	ih := max(m.windowHeight-4, 10)
-	return iw, ih
+	return m.windowWidth, max(m.windowHeight-2, 10) // header=1, status=1
 }
 
-// View renders the app frame with header bar, page content, and status bar.
+// View renders header bar, page content, and status bar — no outer border.
 func (m RootModel) View() string {
 	w := m.windowWidth
 	h := m.windowHeight
@@ -181,8 +175,7 @@ func (m RootModel) View() string {
 	}
 
 	if m.showHelp {
-		helpView := renderHelpOverlay(w)
-		return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, helpView)
+		return lipgloss.Place(w, h, lipgloss.Center, lipgloss.Center, renderHelpOverlay(w))
 	}
 
 	var pageContent string
@@ -192,48 +185,34 @@ func (m RootModel) View() string {
 		pageContent = "Initializing..."
 	}
 
-	// Frame inner width = terminal width - 2 (left/right border chars)
-	frameW := w - 2
-
-	// Header: "x402 Playground" (left) ──── "PageName" (right)
+	// Header bar: full width, background color
 	appName := lipgloss.NewStyle().Bold(true).Foreground(ColorPrimary).Render("x402 Playground")
 	pageTab := lipgloss.NewStyle().Bold(true).Foreground(ColorAccent).Render(pageLabel(m.currentPage))
-	gap := max(frameW-lipgloss.Width(appName)-lipgloss.Width(pageTab)-4, 1) // 4 for padding
-	headerText := " " + appName + strings.Repeat(" ", gap) + pageTab + " "
+	gap := max(w-lipgloss.Width(appName)-lipgloss.Width(pageTab)-4, 1)
 	header := lipgloss.NewStyle().
 		Background(ColorSubtle).
-		Foreground(lipgloss.Color("#D1D5DB")).
-		Width(frameW).
-		Render(headerText)
+		Width(w).
+		Render(" " + appName + strings.Repeat(" ", gap) + pageTab + " ")
 
-	// Status bar
+	// Status bar: full width, background color
 	hints := m.statusHints()
 	status := lipgloss.NewStyle().
-		Background(ColorSubtle).
 		Foreground(lipgloss.Color("#9CA3AF")).
-		Width(frameW).
+		Background(ColorSubtle).
+		Width(w).
 		Render(" " + hints)
 
-	// Content: fill remaining height between header and status
-	usedH := lipgloss.Height(header) + lipgloss.Height(status) + 2 // +2 for border top/bottom
-	contentH := max(h-usedH, 1)
-
+	// Content: fills remaining space
+	contentH := max(h-2, 1) // header=1, status=1
 	content := lipgloss.NewStyle().
-		Width(frameW).
+		Width(w).
 		Height(contentH).
-		PaddingLeft(1).
+		PaddingLeft(2).PaddingRight(2).
 		Render(pageContent)
 
-	// Combine and wrap in border
-	inner := header + "\n" + content + "\n" + status
-
-	return lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(ColorBorder).
-		Render(inner)
+	return header + "\n" + content + "\n" + status
 }
 
-// statusHints returns context-sensitive keyboard hints for the current page.
 func (m RootModel) statusHints() string {
 	switch m.currentPage {
 	case PageHome:
@@ -251,33 +230,23 @@ func (m RootModel) statusHints() string {
 	}
 }
 
-// renderHelpOverlay renders the keyboard shortcuts help panel.
 func renderHelpOverlay(width int) string {
-	title := lipgloss.NewStyle().
-		Foreground(ColorPrimary).Bold(true).
-		Render("Keyboard Shortcuts")
+	title := lipgloss.NewStyle().Foreground(ColorPrimary).Bold(true).Render("Keyboard Shortcuts")
 
 	bindings := []struct{ key, desc string }{
-		{"↑/k", "Move up"},
-		{"↓/j", "Move down"},
-		{"Enter", "Select / Confirm"},
-		{"Esc", "Go back"},
-		{"q", "Quit (from home)"},
-		{"?", "Toggle this help"},
+		{"↑/k", "Move up"}, {"↓/j", "Move down"},
+		{"Enter", "Select / Confirm"}, {"Esc", "Go back"},
+		{"q", "Quit (from home)"}, {"?", "Toggle this help"},
 		{"", ""},
-		{"n", "Next step (Practice)"},
-		{"p", "Previous step (Practice)"},
-		{"Tab", "Switch view (Explore)"},
-		{"r", "Refresh (Dashboard)"},
+		{"n", "Next step (Practice)"}, {"p", "Previous step (Practice)"},
+		{"Tab", "Switch view (Explore)"}, {"r", "Refresh (Dashboard)"},
 		{"e", "Open editor (Learn)"},
 	}
 
 	var b strings.Builder
 	b.WriteString(title + "\n\n")
-
 	keyStyle := lipgloss.NewStyle().Foreground(ColorAccent).Bold(true).Width(10)
 	descStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB"))
-
 	for _, bind := range bindings {
 		if bind.key == "" {
 			b.WriteString("\n")
@@ -285,13 +254,10 @@ func renderHelpOverlay(width int) string {
 		}
 		b.WriteString("  " + keyStyle.Render(bind.key) + descStyle.Render(bind.desc) + "\n")
 	}
-
 	b.WriteString("\n" + MutedStyle.Render("  Press ? to close"))
 
 	return lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(ColorPrimary).
-		Padding(1, 2).
-		Width(min(40, width-10)).
+		Border(lipgloss.RoundedBorder()).BorderForeground(ColorPrimary).
+		Padding(1, 2).Width(min(40, width-10)).
 		Render(b.String())
 }
