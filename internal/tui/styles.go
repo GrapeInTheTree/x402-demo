@@ -63,16 +63,19 @@ var (
 			MarginTop(1)
 )
 
-// LayoutPage places body content at the top and hints anchored at the bottom,
-// filling the full height. Content is horizontally centered within the width.
+// LayoutPage centers body content vertically and horizontally, with hints
+// anchored at the very bottom of the terminal.
 func LayoutPage(body, hints string, width, height int) string {
-	centeredBody := lipgloss.PlaceHorizontal(width, lipgloss.Center, body)
+	hintsRendered := MutedStyle.Render(hints)
+	hintsH := lipgloss.Height(hintsRendered)
 
-	bodyH := lipgloss.Height(centeredBody)
-	hintsH := lipgloss.Height(hints)
-	gap := max(height-bodyH-hintsH, 0)
+	// Body area = full height minus hints row
+	bodyAreaH := max(height-hintsH, 1)
 
-	return centeredBody + "\n" +
-		lipgloss.NewStyle().Height(gap).Render("") +
-		MutedStyle.Render(hints)
+	// Center body both horizontally and vertically in the body area
+	centered := lipgloss.Place(width, bodyAreaH,
+		lipgloss.Center, lipgloss.Center,
+		body)
+
+	return centered + "\n" + hintsRendered
 }
