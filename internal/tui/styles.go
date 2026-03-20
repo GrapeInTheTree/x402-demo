@@ -63,19 +63,50 @@ var (
 			MarginTop(1)
 )
 
-// LayoutPage centers body content vertically and horizontally, with hints
-// anchored at the very bottom of the terminal.
+// LayoutPage renders body inside a bordered container, centered in the terminal,
+// with a hints bar pinned at the bottom outside the border.
 func LayoutPage(body, hints string, width, height int) string {
-	hintsRendered := MutedStyle.Render(hints)
-	hintsH := lipgloss.Height(hintsRendered)
+	// Hints bar at bottom (outside border)
+	hintsRendered := MutedStyle.Render("  " + hints)
+	hintsH := lipgloss.Height(hintsRendered) + 1 // +1 for gap
 
-	// Body area = full height minus hints row
-	bodyAreaH := max(height-hintsH, 1)
+	// Border container dimensions (with margin from terminal edges)
+	const hMargin = 2
+	boxW := width - hMargin*2
+	boxH := height - hintsH - 2 // 2 for top/bottom margin
+	if boxW < 40 {
+		boxW = width
+	}
+	if boxH < 10 {
+		boxH = height - hintsH
+	}
 
-	// Center body both horizontally and vertically in the body area
-	centered := lipgloss.Place(width, bodyAreaH,
+	// Inner content area (border takes 2 chars each side + padding)
+	innerW := boxW - 6 // 2 border + 4 padding (2 each side)
+	innerH := boxH - 4 // 2 border + 2 padding (1 top + 1 bottom)
+	if innerW < 20 {
+		innerW = boxW - 2
+	}
+	if innerH < 5 {
+		innerH = boxH - 2
+	}
+
+	// Center body inside the inner area
+	innerContent := lipgloss.Place(innerW, innerH,
 		lipgloss.Center, lipgloss.Center,
 		body)
 
-	return centered + "\n" + hintsRendered
+	// Draw the bordered box
+	box := lipgloss.NewStyle().
+		Border(lipgloss.RoundedBorder()).
+		BorderForeground(ColorBorder).
+		Padding(1, 2).
+		Width(boxW).
+		Height(boxH).
+		Render(innerContent)
+
+	// Center the box in the terminal width
+	centeredBox := lipgloss.PlaceHorizontal(width, lipgloss.Center, box)
+
+	return centeredBox + "\n" + hintsRendered
 }
