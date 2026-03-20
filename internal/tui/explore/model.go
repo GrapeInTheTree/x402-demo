@@ -33,10 +33,10 @@ type Model struct {
 }
 
 var menuItems = []components.MenuItem{
-	{Title: "Decode PAYMENT-REQUIRED Header", Description: "402 응답 헤더 실시간 디코딩", Icon: "📋"},
-	{Title: "Inspect EIP-712 TypedData", Description: "EIP-712 서명 데이터 구조 탐색", Icon: "🔬"},
-	{Title: "Compare EIP-3009 vs Permit2", Description: "두 방식의 차이점 사이드바이사이드", Icon: "⚖️"},
-	{Title: "View On-Chain State", Description: "잔액, allowance, 컨트랙트 상태", Icon: "🔗"},
+	{Title: "Decode PAYMENT-REQUIRED Header", Description: "Decode 402 response headers live", Icon: "📋"},
+	{Title: "Inspect EIP-712 TypedData", Description: "Explore EIP-712 signature data structures", Icon: "🔬"},
+	{Title: "Compare EIP-3009 vs Permit2", Description: "Side-by-side comparison of both methods", Icon: "⚖️"},
+	{Title: "View On-Chain State", Description: "Balances, allowances, contract state", Icon: "🔗"},
 }
 
 // New creates a new explore page model with all sub-pages initialized.

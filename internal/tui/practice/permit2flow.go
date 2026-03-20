@@ -29,16 +29,16 @@ type Permit2FlowModel struct {
 // NewPermit2FlowModel creates a new Permit2 flow model with live executor.
 func NewPermit2FlowModel(width, height int, cfg *config.ExplorerConfig) *Permit2FlowModel {
 	descriptions := []stepDesc{
-		{"지갑 주소 + Permit2 approve 확인", "—", "—"},
-		{"—", "GET /supported 호출", "/supported 응답"},
-		{"GET /weather (결제 없음)", "402 + assetTransferMethod:permit2", "—"},
-		{"PAYMENT-REQUIRED 디코딩 (Permit2)", "—", "—"},
-		{"Permit2 EIP-712 서명 생성", "—", "—"},
-		{"PAYMENT-SIGNATURE 전송", "헤더 파싱 → /verify", "—"},
-		{"—", "/verify 요청 전달", "Permit2 서명 + allowance 검증"},
-		{"200 + 데이터 수신", "데이터 반환 + /settle", "—"},
-		{"—", "—", "x402Permit2Proxy.settle() 제출"},
-		{"최종 잔액 확인", "—", "—"},
+		{"Check wallet addresses + Permit2 approve", "—", "—"},
+		{"—", "Call GET /supported", "/supported response"},
+		{"GET /weather (no payment)", "402 + assetTransferMethod:permit2", "—"},
+		{"Decode PAYMENT-REQUIRED (Permit2)", "—", "—"},
+		{"Create Permit2 EIP-712 signature", "—", "—"},
+		{"Send PAYMENT-SIGNATURE", "Parse header → /verify", "—"},
+		{"—", "Forward /verify request", "Permit2 signature + allowance verification"},
+		{"Receive 200 + data", "Return data + /settle", "—"},
+		{"—", "—", "Submit x402Permit2Proxy.settle()"},
+		{"Check final balances", "—", "—"},
 	}
 
 	s := spinner.New()

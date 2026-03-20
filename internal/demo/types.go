@@ -65,16 +65,16 @@ func NewFlowState(transferMethod string) *FlowState {
 // StepDescription returns the description for each step.
 func StepDescription(step int) string {
 	descriptions := map[int]string{
-		1:  "지갑 주소 & 잔액 확인",
-		2:  "Facilitator /supported (서비스 디스커버리)",
-		3:  "Client → Resource Server: 결제 없이 API 호출",
-		4:  "402 응답의 PAYMENT-REQUIRED 헤더 디코딩",
-		5:  "Client: 결제 서명 생성 (오프체인)",
-		6:  "Client → Resource Server: PAYMENT-SIGNATURE 포함 재요청",
-		7:  "Resource Server → Facilitator /verify (오프체인 검증)",
-		8:  "검증 성공 → 데이터 반환 + /settle 요청",
-		9:  "Facilitator /settle → 온체인 정산 + PAYMENT-RESPONSE",
-		10: "정산 후 잔액 확인",
+		1:  "Check wallet addresses & balances",
+		2:  "Facilitator /supported (service discovery)",
+		3:  "Client → Resource Server: API call without payment",
+		4:  "Decode PAYMENT-REQUIRED header from 402 response",
+		5:  "Client: create payment signature (off-chain)",
+		6:  "Client → Resource Server: retry with PAYMENT-SIGNATURE",
+		7:  "Resource Server → Facilitator /verify (off-chain verification)",
+		8:  "Verification passed → return data + /settle request",
+		9:  "Facilitator /settle → on-chain settlement + PAYMENT-RESPONSE",
+		10: "Check balances after settlement",
 	}
 	return descriptions[step]
 }

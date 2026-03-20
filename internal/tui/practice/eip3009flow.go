@@ -39,16 +39,16 @@ type EIP3009FlowModel struct {
 // NewEIP3009FlowModel creates a new EIP-3009 flow model with live executor.
 func NewEIP3009FlowModel(width, height int, cfg *config.ExplorerConfig) *EIP3009FlowModel {
 	descriptions := []stepDesc{
-		{"지갑 주소 확인", "—", "—"},
-		{"—", "GET /supported 호출", "/supported 응답"},
-		{"GET /weather (결제 없음)", "402 반환", "—"},
-		{"PAYMENT-REQUIRED 디코딩", "—", "—"},
-		{"EIP-712 서명 생성", "—", "—"},
-		{"PAYMENT-SIGNATURE 전송", "헤더 파싱 → /verify", "—"},
-		{"—", "/verify 요청 전달", "서명/잔액/시뮬레이션 검증"},
-		{"200 + 데이터 수신", "데이터 반환 + /settle", "—"},
-		{"—", "—", "온체인 트랜잭션 제출"},
-		{"최종 잔액 확인", "—", "—"},
+		{"Check wallet addresses", "—", "—"},
+		{"—", "Call GET /supported", "/supported response"},
+		{"GET /weather (no payment)", "Returns 402", "—"},
+		{"Decode PAYMENT-REQUIRED", "—", "—"},
+		{"Create EIP-712 signature", "—", "—"},
+		{"Send PAYMENT-SIGNATURE", "Parse header → /verify", "—"},
+		{"—", "Forward /verify request", "Verify signature/balance/simulation"},
+		{"Receive 200 + data", "Return data + /settle", "—"},
+		{"—", "—", "Submit on-chain transaction"},
+		{"Check final balances", "—", "—"},
 	}
 
 	s := spinner.New()

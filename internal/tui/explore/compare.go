@@ -62,25 +62,25 @@ func (m *CompareModel) View() string {
 type compareRow struct{ Key, Val string }
 
 var eip3009Rows = []compareRow{
-	{"Token Support", "EIP-3009 구현 토큰만 (USDC, EURC)"},
-	{"Prerequisites", "없음"},
-	{"Domain", "USDC 컨트랙트"},
+	{"Token Support", "EIP-3009 tokens only (USDC, EURC)"},
+	{"Prerequisites", "None"},
+	{"Domain", "USDC contract"},
 	{"Primary Type", "TransferWithAuthorization"},
-	{"Contracts", "토큰 컨트랙트 직접 호출"},
-	{"Nonce", "랜덤 32바이트 (1회용)"},
+	{"Contracts", "Direct token contract call"},
+	{"Nonce", "Random 32-byte (single use)"},
 	{"On-chain Call", "USDC.transferWithAuthorization(...)"},
-	{"Gas", "Facilitator 대납"},
+	{"Gas", "Sponsored by Facilitator"},
 }
 
 var permit2Rows = []compareRow{
-	{"Token Support", "모든 ERC-20 토큰"},
-	{"Prerequisites", "approve(Permit2, amount) 1회"},
-	{"Domain", "Permit2 컨트랙트"},
+	{"Token Support", "Any ERC-20 token"},
+	{"Prerequisites", "One-time approve(Permit2, amount)"},
+	{"Domain", "Permit2 contract"},
 	{"Primary Type", "PermitWitnessTransferFrom"},
 	{"Contracts", "Permit2 + x402Permit2Proxy"},
-	{"Nonce", "순차적 Permit2 nonce"},
+	{"Nonce", "Sequential Permit2 nonce"},
 	{"On-chain Call", "Proxy.settle(...) → Permit2"},
-	{"Gas", "Facilitator 대납"},
+	{"Gas", "Sponsored by Facilitator"},
 }
 
 func buildComparePanel(title, subtitle string, color lipgloss.Color, rows []compareRow) string {

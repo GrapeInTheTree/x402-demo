@@ -18,10 +18,10 @@ type Model struct {
 }
 
 var menuItems = []components.MenuItem{
-	{Title: "Learn", Description: "x402 프로토콜 개념 학습", Icon: "📖"},
-	{Title: "Explore", Description: "실시간 데이터 구조 탐색", Icon: "🔍"},
-	{Title: "Practice", Description: "결제 흐름 실행 (EIP-3009 / Permit2)", Icon: "⚡"},
-	{Title: "Dashboard", Description: "지갑 잔액 & 트랜잭션 현황", Icon: "📊"},
+	{Title: "Learn", Description: "Learn x402 protocol with coding quizzes", Icon: "📖"},
+	{Title: "Explore", Description: "Inspect protocol data structures live", Icon: "🔍"},
+	{Title: "Practice", Description: "Execute payment flows (EIP-3009 / Permit2)", Icon: "⚡"},
+	{Title: "Dashboard", Description: "Wallet balances & transaction status", Icon: "📊"},
 }
 
 var pageMap = []tui.Page{

@@ -33,9 +33,9 @@ type Model struct {
 }
 
 var menuItems = []components.MenuItem{
-	{Title: "EIP-3009 Full Flow", Description: "10-step 결제 흐름 (USDC transferWithAuthorization)", Icon: "✍️"},
-	{Title: "Permit2 Full Flow", Description: "10-step 결제 흐름 (Permit2 경유)", Icon: "🔑"},
-	{Title: "Side-by-Side Comparison", Description: "EIP-3009과 Permit2 동시 실행 비교", Icon: "⚖️"},
+	{Title: "EIP-3009 Full Flow", Description: "10-step payment flow (USDC transferWithAuthorization)", Icon: "✍️"},
+	{Title: "Permit2 Full Flow", Description: "10-step payment flow (via Permit2)", Icon: "🔑"},
+	{Title: "Side-by-Side Comparison", Description: "Run EIP-3009 and Permit2 side by side", Icon: "⚖️"},
 }
 
 // New creates a new practice page model with the given dimensions and configuration.

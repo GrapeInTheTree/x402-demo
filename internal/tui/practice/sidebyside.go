@@ -139,13 +139,13 @@ func stepDetail(step int, method string) string {
 	if method == "permit2" {
 		switch step {
 		case 1:
-			return "Permit2 approve 확인 필요"
+			return "Requires Permit2 approve check"
 		case 4:
 			return "extra.assetTransferMethod: permit2"
 		case 5:
 			return "Domain: Permit2, Type: PermitWitnessTransferFrom"
 		case 7:
-			return "Permit2 서명 + allowance 검증"
+			return "Permit2 signature + allowance verification"
 		case 9:
 			return "x402Permit2Proxy.settle() → Permit2"
 		}
@@ -154,7 +154,7 @@ func stepDetail(step int, method string) string {
 		case 5:
 			return "Domain: USDC, Type: TransferWithAuthorization"
 		case 7:
-			return "EIP-712 서명 + 잔액 + 시뮬레이션"
+			return "EIP-712 signature + balance + simulation"
 		case 9:
 			return "USDC.transferWithAuthorization()"
 		}
