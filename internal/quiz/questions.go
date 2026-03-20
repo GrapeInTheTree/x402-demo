@@ -7,6 +7,7 @@ func AllQuestions() []Question {
 	all = append(all, level2Standards()...)
 	all = append(all, level3Protocol()...)
 	all = append(all, level4Advanced()...)
+	all = append(all, SolidityQuestions()...)
 	return all
 }
 

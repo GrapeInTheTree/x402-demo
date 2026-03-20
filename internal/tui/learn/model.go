@@ -30,7 +30,8 @@ type Model struct {
 	questions []quiz.Question
 	cursor    int
 	current   page
-	runner    *quiz.Runner
+	goRunner  *quiz.Runner
+	solRunner *quiz.Runner
 	results   map[int]*quiz.Result
 	score     quiz.Score
 	width     int
@@ -130,17 +131,47 @@ func (m *Model) updateResult(msg tea.KeyMsg) (tui.SubModel, tea.Cmd) {
 	return m, nil
 }
 
+func (m *Model) getRunner(lang quiz.Lang) *quiz.Runner {
+	switch lang {
+	case quiz.LangSolidity:
+		return m.solRunner
+	default:
+		return m.goRunner
+	}
+}
+
+func (m *Model) setRunner(lang quiz.Lang, r *quiz.Runner) {
+	switch lang {
+	case quiz.LangSolidity:
+		m.solRunner = r
+	default:
+		m.goRunner = r
+	}
+}
+
 func (m *Model) openEditor() tea.Cmd {
-	if m.runner == nil {
-		r, err := quiz.NewRunner()
+	q := m.questions[m.cursor]
+	lang := q.Language
+	if lang == "" {
+		lang = quiz.LangGo
+	}
+
+	runner := m.getRunner(lang)
+	if runner == nil {
+		var err error
+		switch lang {
+		case quiz.LangSolidity:
+			runner, err = quiz.NewSolidityRunner()
+		default:
+			runner, err = quiz.NewRunner()
+		}
 		if err != nil {
 			return nil
 		}
-		m.runner = r
+		m.setRunner(lang, runner)
 	}
 
-	q := m.questions[m.cursor]
-	if err := os.WriteFile(m.runner.TemplatePath(), []byte(q.Template), 0644); err != nil {
+	if err := os.WriteFile(runner.TemplatePath(), []byte(q.Template), 0644); err != nil {
 		return nil
 	}
 
@@ -157,15 +188,22 @@ func (m *Model) openEditor() tea.Cmd {
 		}
 	}
 
-	c := exec.Command(editor, m.runner.TemplatePath())
+	c := exec.Command(editor, runner.TemplatePath())
 	return tea.ExecProcess(c, func(err error) tea.Msg {
 		return editorFinishedMsg{err: err}
 	})
 }
 
 func (m *Model) runTests() tea.Cmd {
-	runner := m.runner
 	q := m.questions[m.cursor]
+	lang := q.Language
+	if lang == "" {
+		lang = quiz.LangGo
+	}
+	runner := m.getRunner(lang)
+	if runner == nil {
+		return nil
+	}
 	return func() tea.Msg {
 		solution, err := os.ReadFile(runner.TemplatePath())
 		if err != nil {
@@ -228,8 +266,13 @@ func (m *Model) viewList() string {
 			diffStyle = lipgloss.NewStyle().Foreground(tui.ColorError)
 		}
 
+		langIcon := "Go"
+		if q.Language == quiz.LangSolidity {
+			langIcon = "Sol"
+		}
+		langStyle := lipgloss.NewStyle().Foreground(tui.ColorMuted)
 		catStyle := lipgloss.NewStyle().Foreground(tui.ColorSecondary)
-		badge := catStyle.Render(q.Category) + " " + diffStyle.Render("["+q.Difficulty+"]")
+		badge := langStyle.Render(langIcon) + " " + catStyle.Render(q.Category) + " " + diffStyle.Render("["+q.Difficulty+"]")
 
 		if i == m.cursor {
 			cursor := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Render(">")

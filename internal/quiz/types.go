@@ -7,8 +7,9 @@ type Question struct {
 	Description string // shown in TUI before opening editor
 	Difficulty  string // "easy", "medium", "hard"
 	Category    string // "Basics", "ERC-20", "EIP-712", "EIP-3009", "EIP-2612", "x402", "Permit2"
-	Template    string // Go source code with TODO sections
-	TestCode    string // Go test code to validate the solution
+	Language    Lang   // LangGo or LangSolidity
+	Template    string // source code with TODO sections
+	TestCode    string // test code to validate the solution
 	Hints       []string
 }
 
