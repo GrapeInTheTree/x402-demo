@@ -146,10 +146,14 @@ func (m *Model) openEditor() tea.Cmd {
 
 	editor := os.Getenv("EDITOR")
 	if editor == "" {
-		if _, err := exec.LookPath("vim"); err == nil {
-			editor = "vim"
-		} else {
-			editor = "nano"
+		for _, candidate := range []string{"nvim", "vim", "nano"} {
+			if _, err := exec.LookPath(candidate); err == nil {
+				editor = candidate
+				break
+			}
+		}
+		if editor == "" {
+			editor = "vi"
 		}
 	}
 
