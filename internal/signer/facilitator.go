@@ -43,9 +43,13 @@ func NewFacilitatorSigner(privateKeyHex, rpcURL string, logger *slog.Logger) (*F
 
 	address := crypto.PubkeyToAddress(pk.PublicKey)
 
-	// Store key as fixed-size array
+	// Store key as fixed-size array and zero the intermediate slice
+	rawKey := crypto.FromECDSA(pk)
 	var keyBytes [32]byte
-	copy(keyBytes[:], crypto.FromECDSA(pk))
+	copy(keyBytes[:], rawKey)
+	for i := range rawKey {
+		rawKey[i] = 0
+	}
 
 	return &FacilitatorSigner{
 		client:     client,

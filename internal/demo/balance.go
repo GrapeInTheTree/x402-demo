@@ -11,14 +11,16 @@ import (
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
-var erc20BalanceOfABI = `[{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]`
+// ERC20BalanceOfABI is the minimal ABI for the ERC-20 balanceOf function.
+var ERC20BalanceOfABI = `[{"inputs":[{"name":"account","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]`
 
-var erc20AllowanceABI = `[{"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]`
+// ERC20AllowanceABI is the minimal ABI for the ERC-20 allowance function.
+var ERC20AllowanceABI = `[{"inputs":[{"name":"owner","type":"address"},{"name":"spender","type":"address"}],"name":"allowance","outputs":[{"name":"","type":"uint256"}],"stateMutability":"view","type":"function"}]`
 
 // QueryBalances fetches ETH and USDC balances for the given wallets.
 func QueryBalances(ctx context.Context, client *ethclient.Client, usdcAddr string, wallets []WalletInfo) ([]WalletBalance, error) {
 	usdc := common.HexToAddress(usdcAddr)
-	erc20ABI, err := abi.JSON(strings.NewReader(erc20BalanceOfABI))
+	erc20ABI, err := abi.JSON(strings.NewReader(ERC20BalanceOfABI))
 	if err != nil {
 		return nil, err
 	}
@@ -68,7 +70,7 @@ func QueryAllowance(ctx context.Context, client *ethclient.Client, tokenAddr, ow
 	owner := common.HexToAddress(ownerAddr)
 	spender := common.HexToAddress(spenderAddr)
 
-	allowanceABI, err := abi.JSON(strings.NewReader(erc20AllowanceABI))
+	allowanceABI, err := abi.JSON(strings.NewReader(ERC20AllowanceABI))
 	if err != nil {
 		return "0", err
 	}

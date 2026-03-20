@@ -21,7 +21,7 @@ type FlowExecutor struct {
 type StepResult struct {
 	Step        int
 	Description string
-	Data        json.RawMessage // key data produced by this step
+	Data        json.RawMessage
 	Error       error
 }
 
@@ -32,7 +32,10 @@ func (f *FlowExecutor) Step2_FacilitatorSupported(ctx context.Context) (*StepRes
 		return nil, fmt.Errorf("GET /supported: %w", err)
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read /supported body: %w", err)
+	}
 	return &StepResult{Step: 2, Description: StepDescription(2), Data: body}, nil
 }
 
@@ -43,14 +46,17 @@ func (f *FlowExecutor) Step3_NaiveAPICall(ctx context.Context) (*http.Response, 
 	if err != nil {
 		return nil, nil, fmt.Errorf("GET %s: %w", targetURL, err)
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
+	if err != nil {
+		return nil, nil, fmt.Errorf("read response body: %w", err)
+	}
 	return resp, body, nil
 }
 
 // Step7_Verify calls the facilitator /verify endpoint directly.
 func (f *FlowExecutor) Step7_Verify(ctx context.Context, payloadBytes, requirementsBytes []byte) (json.RawMessage, error) {
-	verifyBody := map[string]interface{}{
+	verifyBody := map[string]any{
 		"x402Version":         2,
 		"paymentPayload":      json.RawMessage(payloadBytes),
 		"paymentRequirements": json.RawMessage(requirementsBytes),
@@ -65,7 +71,10 @@ func (f *FlowExecutor) Step7_Verify(ctx context.Context, payloadBytes, requireme
 		return nil, fmt.Errorf("POST /verify: %w", err)
 	}
 	defer resp.Body.Close()
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("read /verify body: %w", err)
+	}
 	return body, nil
 }
 
@@ -82,7 +91,10 @@ func (f *FlowExecutor) Step8_PaidRequest(ctx context.Context, headerName, header
 	if err != nil {
 		return nil, nil, fmt.Errorf("GET %s (paid): %w", targetURL, err)
 	}
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	resp.Body.Close()
+	if err != nil {
+		return nil, nil, fmt.Errorf("read paid response body: %w", err)
+	}
 	return resp, body, nil
 }

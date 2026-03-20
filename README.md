@@ -18,7 +18,7 @@ Most x402 examples are minimal snippets. This project is a **complete, working r
 - **Dual Transfer Methods** — EIP-3009 and Permit2, switchable via one environment variable
 - **Interactive TUI Explorer** — Bubbletea-based tool with Learn, Explore, Practice, and Dashboard modes
 - **Chain-Agnostic** — Configure any EVM chain via environment variables
-- **42 Unit Tests** — Config, handlers, signer, protocol logic all covered
+- **45 Unit Tests** — Config, handlers, signer, protocol logic all covered
 
 ## How It Works
 
@@ -219,7 +219,7 @@ USDC_ADDRESS=0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913
 
 ```bash
 make build           # Compile all binaries (facilitator, resource, client, explorer)
-make test            # Run all 42 unit tests
+make test            # Run all 45 unit tests
 make lint            # Run golangci-lint
 make clean           # Remove compiled binaries
 ```
@@ -229,9 +229,9 @@ make clean           # Remove compiled binaries
 | `internal/config` | 13 | Env loading, defaults, validation, Permit2 config, ExplorerConfig |
 | `internal/demo` | 11 | Header decoding, JSON formatting, accept item parsing, flow state |
 | `internal/facilserver` | 9 | Verify/settle/supported handlers with mock |
-| `internal/server` | 4 | API response structure, health |
+| `internal/server` | 6 | API handlers, health, route structure |
 | `internal/signer` | 5 | Key parsing, address derivation, Close() zeroing |
-| **Total** | **42** | |
+| **Total** | **45** | |
 
 ## Docker
 

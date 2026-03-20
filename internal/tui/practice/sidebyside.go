@@ -55,10 +55,8 @@ func (m *SideBySideModel) Update(msg tea.Msg) tea.Cmd {
 }
 
 func (m *SideBySideModel) View() string {
-	colWidth := (m.width - 6) / 2
-	if colWidth < 30 {
-		colWidth = 30
-	}
+	const minColWidth = 30
+	colWidth := max((m.width-6)/2, minColWidth)
 
 	// Progress bars
 	eipProgress := components.Progress{Total: m.totalSteps, Current: m.eip3009Step}

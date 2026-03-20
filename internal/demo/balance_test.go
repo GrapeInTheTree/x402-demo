@@ -31,3 +31,32 @@ func TestNewFlowState(t *testing.T) {
 		t.Errorf("expected transfer method 'permit2', got %q", fs2.TransferMethod)
 	}
 }
+
+func TestERC20ABIConstants(t *testing.T) {
+	if ERC20BalanceOfABI == "" {
+		t.Error("ERC20BalanceOfABI should not be empty")
+	}
+	if ERC20AllowanceABI == "" {
+		t.Error("ERC20AllowanceABI should not be empty")
+	}
+	// Verify they contain the expected function names
+	if !contains(ERC20BalanceOfABI, "balanceOf") {
+		t.Error("ERC20BalanceOfABI should contain 'balanceOf'")
+	}
+	if !contains(ERC20AllowanceABI, "allowance") {
+		t.Error("ERC20AllowanceABI should contain 'allowance'")
+	}
+}
+
+func contains(s, substr string) bool {
+	return len(s) >= len(substr) && searchString(s, substr)
+}
+
+func searchString(s, substr string) bool {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return true
+		}
+	}
+	return false
+}

@@ -21,10 +21,10 @@ const (
 type Model struct {
 	menu     components.Menu
 	sub      subPage
-	header   HeaderModel
-	typed    TypedDataModel
-	compare  CompareModel
-	onchain  OnChainModel
+	header   *HeaderModel
+	typed    *TypedDataModel
+	compare  *CompareModel
+	onchain  *OnChainModel
 	width    int
 	height   int
 }

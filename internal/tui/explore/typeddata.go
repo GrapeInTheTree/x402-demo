@@ -10,14 +10,14 @@ import (
 
 // TypedDataModel shows EIP-712 TypedData structure with field exploration.
 type TypedDataModel struct {
-	explorer  components.FieldExplorer
-	showEIP   bool // false=EIP-3009, true=Permit2
-	width     int
-	height    int
+	explorer components.FieldExplorer
+	permit2  bool // false=EIP-3009, true=Permit2
+	width    int
+	height   int
 }
 
-func NewTypedDataModel(width, height int) TypedDataModel {
-	return TypedDataModel{
+func NewTypedDataModel(width, height int) *TypedDataModel {
+	return &TypedDataModel{
 		explorer: components.NewFieldExplorer(eip3009Fields()),
 		width:    width,
 		height:   height,
@@ -62,8 +62,8 @@ func (m *TypedDataModel) Update(msg tea.Msg) tea.Cmd {
 		case "down", "j":
 			m.explorer.Down()
 		case "tab":
-			m.showEIP = !m.showEIP
-			if m.showEIP {
+			m.permit2 = !m.permit2
+			if m.permit2 {
 				m.explorer = components.NewFieldExplorer(permit2Fields())
 			} else {
 				m.explorer = components.NewFieldExplorer(eip3009Fields())
@@ -81,7 +81,7 @@ func (m *TypedDataModel) SetSize(width, height int) {
 
 func (m *TypedDataModel) View() string {
 	mode := "EIP-3009 (USDC Direct)"
-	if m.showEIP {
+	if m.permit2 {
 		mode = "Permit2 (Universal ERC-20)"
 	}
 

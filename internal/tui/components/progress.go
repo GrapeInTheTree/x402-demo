@@ -1,6 +1,7 @@
 package components
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -35,30 +36,14 @@ func (p Progress) View() string {
 
 // StepLabel returns a formatted step label like "Step 3/10: Description"
 func StepLabel(current, total int, description string) string {
-	label := lipgloss.NewStyle().
-		Foreground(tui.ColorAccent).
-		Bold(true).
-		Render(strings.Replace("Step X/Y", "X", string(rune('0'+current%10)), 1))
-
-	// Use Sprintf for proper formatting
 	stepText := lipgloss.NewStyle().
 		Foreground(tui.ColorAccent).
 		Bold(true).
-		Render(stepString(current, total))
+		Render(fmt.Sprintf("%d/%d", current, total))
 
 	desc := lipgloss.NewStyle().
 		Foreground(lipgloss.Color("#D1D5DB")).
 		Render(description)
 
-	_ = label
 	return stepText + " " + desc
-}
-
-func stepString(current, total int) string {
-	digits := "0123456789"
-	if current > 9 || total > 9 {
-		return string(rune('0'+current/10)) + string(digits[current%10]) + "/" +
-			string(rune('0'+total/10)) + string(digits[total%10])
-	}
-	return string(digits[current]) + "/" + string(digits[total])
 }

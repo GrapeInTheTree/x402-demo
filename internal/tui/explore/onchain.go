@@ -13,13 +13,11 @@ import (
 	"github.com/GrapeInTheTree/x402-playground/internal/tui"
 )
 
-// balancesMsg carries fetched balance data.
 type balancesMsg struct {
 	balances []demo.WalletBalance
 	err      error
 }
 
-// allowanceMsg carries fetched allowance data.
 type allowanceMsg struct {
 	allowance string
 	err       error
@@ -38,8 +36,8 @@ type OnChainModel struct {
 	height    int
 }
 
-func NewOnChainModel(width, height int) OnChainModel {
-	return OnChainModel{
+func NewOnChainModel(width, height int) *OnChainModel {
+	return &OnChainModel{
 		width:  width,
 		height: height,
 	}

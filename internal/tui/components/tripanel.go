@@ -10,11 +10,10 @@ type TriPanel struct {
 	Width  int
 }
 
+const minTriPanelColWidth = 20
+
 func (t TriPanel) View() string {
-	colWidth := (t.Width - 6) / 3
-	if colWidth < 20 {
-		colWidth = 20
-	}
+	colWidth := max((t.Width-6)/3, minTriPanelColWidth)
 
 	t.Left.Width = colWidth
 	t.Center.Width = colWidth

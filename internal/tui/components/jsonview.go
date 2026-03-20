@@ -2,7 +2,6 @@ package components
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -12,7 +11,7 @@ import (
 
 // JSONView renders JSON data with syntax highlighting.
 func JSONView(data []byte, width int) string {
-	var v interface{}
+	var v any
 	if err := json.Unmarshal(data, &v); err != nil {
 		return string(data)
 	}
@@ -32,9 +31,8 @@ func colorizeJSON(s string) string {
 	boolStyle := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true)
 
 	var result strings.Builder
-	lines := strings.Split(s, "\n")
 
-	for _, line := range lines {
+	for _, line := range strings.Split(s, "\n") {
 		trimmed := strings.TrimSpace(line)
 		indent := line[:len(line)-len(trimmed)]
 
@@ -57,16 +55,13 @@ func colorizeJSON(s string) string {
 }
 
 func colorizeValue(val string, strStyle, numStyle, boolStyle lipgloss.Style) string {
-	val = strings.TrimSuffix(val, ",")
 	trailing := ""
-	if strings.HasSuffix(val+",", ",") && len(val) > 0 {
-		// check original
-	}
-
-	clean := strings.TrimSuffix(strings.TrimSpace(val), ",")
 	if strings.HasSuffix(val, ",") {
 		trailing = ","
+		val = strings.TrimSuffix(val, ",")
 	}
+
+	clean := strings.TrimSpace(val)
 
 	switch {
 	case strings.HasPrefix(clean, "\""):
@@ -79,10 +74,28 @@ func colorizeValue(val string, strStyle, numStyle, boolStyle lipgloss.Style) str
 		clean == "{}" || clean == "[]":
 		return clean + trailing
 	default:
-		// Try as number
-		if _, err := fmt.Sscanf(clean, "%f", new(float64)); err == nil {
+		if isNumeric(clean) {
 			return numStyle.Render(clean) + trailing
 		}
 		return clean + trailing
 	}
+}
+
+func isNumeric(s string) bool {
+	if s == "" {
+		return false
+	}
+	start := 0
+	if s[0] == '-' {
+		start = 1
+	}
+	dotSeen := false
+	for i := start; i < len(s); i++ {
+		if s[i] == '.' && !dotSeen {
+			dotSeen = true
+		} else if s[i] < '0' || s[i] > '9' {
+			return false
+		}
+	}
+	return start < len(s)
 }
