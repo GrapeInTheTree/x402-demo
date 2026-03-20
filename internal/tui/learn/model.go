@@ -228,13 +228,16 @@ func (m *Model) viewList() string {
 			diffStyle = lipgloss.NewStyle().Foreground(tui.ColorError)
 		}
 
+		catStyle := lipgloss.NewStyle().Foreground(tui.ColorSecondary)
+		badge := catStyle.Render(q.Category) + " " + diffStyle.Render("["+q.Difficulty+"]")
+
 		if i == m.cursor {
 			cursor := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Render(">")
 			name := lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Render(q.Title)
-			fmt.Fprintf(&items, " %s %s %s  %s\n", cursor, iconStyle.Render(icon), name, diffStyle.Render("["+q.Difficulty+"]"))
+			fmt.Fprintf(&items, " %s %s %s  %s\n", cursor, iconStyle.Render(icon), name, badge)
 		} else {
 			name := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB")).Render(q.Title)
-			fmt.Fprintf(&items, "   %s %s  %s\n", iconStyle.Render(icon), name, diffStyle.Render("["+q.Difficulty+"]"))
+			fmt.Fprintf(&items, "   %s %s  %s\n", iconStyle.Render(icon), name, badge)
 		}
 	}
 
