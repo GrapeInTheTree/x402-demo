@@ -1,8 +1,6 @@
 package practice
 
 import (
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -148,39 +146,44 @@ func (m *Model) SetSize(width, height int) {
 
 // View renders the current sub-page or the practice menu.
 func (m *Model) View() string {
-	header := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(tui.ColorPrimary).
-		Render("Practice — Payment Flow Execution")
-
-	var content string
+	availW := m.width - 4
 
 	switch m.sub {
 	case subPageMenu:
-		content = m.menu.View()
-	case subPageEIP3009:
-		if m.eip3009flow != nil {
-			content = m.eip3009flow.View()
+		return m.viewMenu(availW)
+	default:
+		var content string
+		switch m.sub {
+		case subPageEIP3009:
+			if m.eip3009flow != nil {
+				content = m.eip3009flow.View()
+			}
+		case subPagePermit2:
+			if m.permit2flow != nil {
+				content = m.permit2flow.View()
+			}
+		case subPageSideBySide:
+			if m.sidebyside != nil {
+				content = m.sidebyside.View()
+			}
 		}
-	case subPagePermit2:
-		if m.permit2flow != nil {
-			content = m.permit2flow.View()
-		}
-	case subPageSideBySide:
-		if m.sidebyside != nil {
-			content = m.sidebyside.View()
-		}
+		return content
 	}
+}
 
-	divider := lipgloss.NewStyle().
-		Foreground(tui.ColorBorder).
-		Render(strings.Repeat("─", min(m.width-8, 60)))
+func (m *Model) viewMenu(availW int) string {
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(0, 1)
 
-	return lipgloss.JoinVertical(lipgloss.Left,
-		header,
-		"",
-		divider,
-		"",
-		content,
-	)
+	title := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorSecondary).
+		Render("Practice — Payment Flow Execution")
+	subtitle := tui.MutedStyle.Render("Select a flow to execute live on Base Sepolia")
+
+	boxW := min(availW-2, 64)
+	content := lipgloss.JoinVertical(lipgloss.Left,
+		title, subtitle, "", m.menu.View())
+
+	return boxStyle.Width(boxW).Render(content)
 }

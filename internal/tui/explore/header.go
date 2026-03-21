@@ -1,6 +1,9 @@
 package explore
 
 import (
+	"fmt"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -58,18 +61,49 @@ func (m *HeaderModel) SetSize(width, height int) {
 
 // View renders the header field explorer with descriptions.
 func (m *HeaderModel) View() string {
-	title := lipgloss.NewStyle().
-		Foreground(tui.ColorSecondary).
-		Bold(true).
-		Render("PAYMENT-REQUIRED Header Fields")
+	availW := m.width - 4 // RootModel padding
+	gap := 1
+	innerTotal := availW - gap - 4 // 2 borders
+	leftW := innerTotal * 2 / 5
+	rightW := innerTotal - leftW
 
-	subtitle := tui.MutedStyle.
-		Render("↑/↓ to select fields — see description below")
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(0, 1)
 
-	return lipgloss.JoinVertical(lipgloss.Left,
-		title,
-		subtitle,
-		"",
-		m.explorer.View(),
-	)
+	// Left: field list
+	leftTitle := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorSecondary).
+		Render("PAYMENT-REQUIRED Fields")
+	var fieldList strings.Builder
+	nameW := max(leftW/2, 12)
+	for i, f := range m.explorer.Fields {
+		nameStyle := lipgloss.NewStyle().Foreground(tui.ColorSecondary).Width(nameW)
+		valStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB"))
+		if i == m.explorer.Cursor {
+			nameStyle = lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Width(nameW)
+			valStyle = lipgloss.NewStyle().Foreground(tui.ColorAccent)
+			fmt.Fprintf(&fieldList, " > %s %s\n", nameStyle.Render(f.Name+":"), valStyle.Render(f.Value))
+		} else {
+			fmt.Fprintf(&fieldList, "   %s %s\n", nameStyle.Render(f.Name+":"), valStyle.Render(f.Value))
+		}
+	}
+	leftContent := lipgloss.JoinVertical(lipgloss.Left, leftTitle, "", fieldList.String())
+	leftBox := boxStyle.Width(leftW).Height(m.height - 4).Render(leftContent)
+
+	// Right: description of selected field
+	rightTitle := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorPrimary).
+		Render("Field Details")
+	desc := ""
+	if m.explorer.Cursor >= 0 && m.explorer.Cursor < len(m.explorer.Fields) {
+		f := m.explorer.Fields[m.explorer.Cursor]
+		name := lipgloss.NewStyle().Foreground(tui.ColorAccent).Bold(true).Render(f.Name)
+		val := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB")).Render(f.Value)
+		body := lipgloss.NewStyle().Foreground(tui.ColorMuted).Width(rightW - 2).Render(f.Description)
+		desc = lipgloss.JoinVertical(lipgloss.Left, name, val, "", body)
+	}
+	rightContent := lipgloss.JoinVertical(lipgloss.Left, rightTitle, "", desc)
+	rightBox := boxStyle.Width(rightW).Height(m.height - 4).Render(rightContent)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, leftBox, " ", rightBox)
 }

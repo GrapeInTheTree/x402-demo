@@ -35,19 +35,23 @@ const minCompareColWidth = 30
 
 // View renders the EIP-3009 vs Permit2 side-by-side comparison.
 func (m *CompareModel) View() string {
-	colWidth := max((m.width-10)/2, minCompareColWidth)
+	availW := m.width - 4 // RootModel padding
+	gap := 2
+	// (leftW + 2) + gap + (rightW + 2) <= availW
+	innerTotal := availW - gap - 4
+	colWidth := max(innerTotal/2, minCompareColWidth)
 
 	leftStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.ThickBorder()).
 		BorderForeground(tui.ColorSecondary).
 		Width(colWidth).
-		Padding(1, 2)
+		Padding(0, 1)
 
 	rightStyle := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.ThickBorder()).
 		BorderForeground(tui.ColorAccent).
 		Width(colWidth).
-		Padding(1, 2)
+		Padding(0, 1)
 
 	left := buildComparePanel("EIP-3009", "transferWithAuthorization", tui.ColorSecondary, eip3009Rows)
 	right := buildComparePanel("Permit2", "permitWitnessTransferFrom", tui.ColorAccent, permit2Rows)

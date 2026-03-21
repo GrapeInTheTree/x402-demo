@@ -94,6 +94,12 @@ func (m *OnChainModel) SetSize(width, height int) {
 
 // View renders the on-chain state including balances and allowances.
 func (m *OnChainModel) View() string {
+	availW := m.width - 4
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(0, 1)
+
 	title := lipgloss.NewStyle().
 		Foreground(tui.ColorSecondary).
 		Bold(true).
@@ -103,20 +109,11 @@ func (m *OnChainModel) View() string {
 
 	if m.rpcURL == "" {
 		b.WriteString(tui.MutedStyle.Render("RPC not configured. Set RPC_URL environment variable."))
-		return lipgloss.JoinVertical(lipgloss.Left, title, "", b.String())
-	}
-
-	if m.loading {
+	} else if m.loading {
 		b.WriteString("Loading on-chain data...")
-		return lipgloss.JoinVertical(lipgloss.Left, title, "", b.String())
-	}
-
-	if m.err != nil {
+	} else if m.err != nil {
 		b.WriteString(tui.ErrorStyle.Render(fmt.Sprintf("Error: %v", m.err)))
-		return lipgloss.JoinVertical(lipgloss.Left, title, "", b.String())
-	}
-
-	if len(m.balances) > 0 {
+	} else if len(m.balances) > 0 {
 		nameStyle := lipgloss.NewStyle().Foreground(tui.ColorSecondary).Width(16)
 		addrStyle := tui.MutedStyle
 		valStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB"))
@@ -133,14 +130,16 @@ func (m *OnChainModel) View() string {
 				valStyle.Render(bal.ETH),
 				valStyle.Render(bal.USDC)))
 		}
+
+		if m.allowance != "" {
+			b.WriteString(fmt.Sprintf("Permit2 Allowance: %s USDC\n",
+				lipgloss.NewStyle().Foreground(tui.ColorAccent).Render(m.allowance)))
+		}
 	} else {
 		b.WriteString(tui.MutedStyle.Render("No balance data. Press 'r' to refresh."))
 	}
 
-	if m.allowance != "" {
-		b.WriteString(fmt.Sprintf("Permit2 Allowance: %s USDC\n",
-			lipgloss.NewStyle().Foreground(tui.ColorAccent).Render(m.allowance)))
-	}
-
-	return lipgloss.JoinVertical(lipgloss.Left, title, "", b.String())
+	content := lipgloss.JoinVertical(lipgloss.Left, title, "", b.String())
+	boxW := min(availW-2, 60) // -2 for border
+	return boxStyle.Width(boxW).Render(content)
 }

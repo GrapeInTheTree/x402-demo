@@ -1,8 +1,6 @@
 package explore
 
 import (
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -121,35 +119,37 @@ func (m *Model) SetSize(width, height int) {
 
 // View renders the current sub-page or the explore menu.
 func (m *Model) View() string {
-	header := lipgloss.NewStyle().
-		Bold(true).
-		Foreground(tui.ColorPrimary).
-		Render("Explore — Data Structure Inspector")
-
-	var content string
+	availW := m.width - 4
 
 	switch m.sub {
 	case subPageMenu:
-		content = m.menu.View()
+		return m.viewMenu(availW)
 	case subPageHeader:
-		content = m.header.View()
+		return m.header.View()
 	case subPageTypedData:
-		content = m.typed.View()
+		return m.typed.View()
 	case subPageCompare:
-		content = m.compare.View()
+		return m.compare.View()
 	case subPageOnChain:
-		content = m.onchain.View()
+		return m.onchain.View()
+	default:
+		return ""
 	}
+}
 
-	divider := lipgloss.NewStyle().
-		Foreground(tui.ColorBorder).
-		Render(strings.Repeat("─", min(m.width-8, 60)))
+func (m *Model) viewMenu(availW int) string {
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(0, 1)
 
-	return lipgloss.JoinVertical(lipgloss.Left,
-		header,
-		"",
-		divider,
-		"",
-		content,
-	)
+	title := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorSecondary).
+		Render("Explore — Data Structure Inspector")
+	subtitle := tui.MutedStyle.Render("Select a topic to explore x402 internals")
+
+	boxW := min(availW-2, 64) // -2 for border
+	content := lipgloss.JoinVertical(lipgloss.Left,
+		title, subtitle, "", m.menu.View())
+
+	return boxStyle.Width(boxW).Render(content)
 }

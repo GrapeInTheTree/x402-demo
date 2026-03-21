@@ -175,7 +175,9 @@ func renderFlowPanels(
 		lipgloss.NewStyle().Foreground(tui.ColorAccent).Bold(true).Render(stepLabel),
 	)
 
-	colWidth := max((width-panelGap)/3, minPanelWidth)
+	// Account for RootModel padding(4), 3 borders(6), 2 gaps(2)
+	availInner := width - 4 - 6 - 2
+	colWidth := max(availInner/3, minPanelWidth)
 
 	clientPanel := renderActorPanel("Client", clientSteps, step, colWidth, tui.ColorSecondary)
 	resourcePanel := renderActorPanel("Resource Server", resourceSteps, step, colWidth, tui.ColorPrimary)
@@ -190,9 +192,9 @@ func renderFlowPanels(
 
 func renderActorPanel(title string, steps []StepInfo, currentStep, width int, color lipgloss.Color) string {
 	style := lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
+		Border(lipgloss.ThickBorder()).
 		BorderForeground(color).
-		Width(width - 2).
+		Width(width).
 		Padding(0, 1)
 
 	titleStyle := lipgloss.NewStyle().Foreground(color).Bold(true)

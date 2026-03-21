@@ -84,17 +84,16 @@ func (m *Model) View() string {
 		Foreground(tui.ColorMuted).
 		Render("Interactive learning tool for the x402 payment protocol")
 
-	// Center title block
 	titleBlock := lipgloss.JoinVertical(lipgloss.Center, title, subtitle)
 
-	body := lipgloss.JoinVertical(lipgloss.Center,
-		titleBlock,
-		"",
-		m.menu.View(),
-	)
+	card := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(1, 2).
+		Render(lipgloss.JoinVertical(lipgloss.Left,
+			titleBlock, "", m.menu.View()))
 
-	// Center everything in the available space
 	return lipgloss.Place(m.width, m.height,
 		lipgloss.Center, lipgloss.Center,
-		body)
+		card)
 }

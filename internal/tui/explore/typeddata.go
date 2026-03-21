@@ -1,6 +1,9 @@
 package explore
 
 import (
+	"fmt"
+	"strings"
+
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -89,18 +92,50 @@ func (m *TypedDataModel) View() string {
 		mode = "Permit2 (Universal ERC-20)"
 	}
 
-	title := lipgloss.NewStyle().
-		Foreground(tui.ColorSecondary).
-		Bold(true).
-		Render("EIP-712 TypedData — " + mode)
+	availW := m.width - 4
+	gap := 1
+	innerTotal := availW - gap - 4
+	leftW := innerTotal * 2 / 5
+	rightW := innerTotal - leftW
 
-	hint := tui.MutedStyle.
-		Render("Tab to switch EIP-3009/Permit2  ↑/↓ select field")
+	boxStyle := lipgloss.NewStyle().
+		Border(lipgloss.ThickBorder()).
+		BorderForeground(tui.ColorBorder).
+		Padding(0, 1)
 
-	return lipgloss.JoinVertical(lipgloss.Left,
-		title,
-		hint,
-		"",
-		m.explorer.View(),
-	)
+	// Left: field list
+	leftTitle := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorSecondary).
+		Render("EIP-712 — " + mode)
+	tabHint := tui.MutedStyle.Render("Tab to switch")
+	var fieldList strings.Builder
+	nameW := max(leftW/2, 12)
+	for i, f := range m.explorer.Fields {
+		nameStyle := lipgloss.NewStyle().Foreground(tui.ColorSecondary).Width(nameW)
+		valStyle := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB"))
+		if i == m.explorer.Cursor {
+			nameStyle = lipgloss.NewStyle().Foreground(tui.ColorPrimary).Bold(true).Width(nameW)
+			valStyle = lipgloss.NewStyle().Foreground(tui.ColorAccent)
+			fmt.Fprintf(&fieldList, " > %s %s\n", nameStyle.Render(f.Name+":"), valStyle.Render(f.Value))
+		} else {
+			fmt.Fprintf(&fieldList, "   %s %s\n", nameStyle.Render(f.Name+":"), valStyle.Render(f.Value))
+		}
+	}
+	leftContent := lipgloss.JoinVertical(lipgloss.Left, leftTitle, tabHint, "", fieldList.String())
+	leftBox := boxStyle.Width(leftW).Height(m.height - 4).Render(leftContent)
+
+	// Right: description
+	rightTitle := lipgloss.NewStyle().Bold(true).Foreground(tui.ColorPrimary).
+		Render("Field Details")
+	desc := ""
+	if m.explorer.Cursor >= 0 && m.explorer.Cursor < len(m.explorer.Fields) {
+		f := m.explorer.Fields[m.explorer.Cursor]
+		name := lipgloss.NewStyle().Foreground(tui.ColorAccent).Bold(true).Render(f.Name)
+		val := lipgloss.NewStyle().Foreground(lipgloss.Color("#D1D5DB")).Render(f.Value)
+		body := lipgloss.NewStyle().Foreground(tui.ColorMuted).Width(rightW - 2).Render(f.Description)
+		desc = lipgloss.JoinVertical(lipgloss.Left, name, val, "", body)
+	}
+	rightContent := lipgloss.JoinVertical(lipgloss.Left, rightTitle, "", desc)
+	rightBox := boxStyle.Width(rightW).Height(m.height - 4).Render(rightContent)
+
+	return lipgloss.JoinHorizontal(lipgloss.Top, leftBox, " ", rightBox)
 }
